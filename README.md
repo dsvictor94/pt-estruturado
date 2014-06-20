@@ -16,7 +16,7 @@ Portugues estruturado syntax
 The syntax used in this interpreter was based in syntax used at school, and is like below.
 
 
-<code>
+```
 algoritimo Teste
 /* mult
    line
@@ -36,18 +36,19 @@ inicio
   escreva(b+b);
   escreva(c%2);
 fimalgoritimo
-</code>
+```
 
 Usage
 =====
 
+```
 cabal configure
 cabal build
 cabal install 
 
 PTEstruturado code-exemple.pe
-
+```
 Or
---
-
+```
 runghc Main.hs code-expemple.pe
+```
