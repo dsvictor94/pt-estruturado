@@ -7,8 +7,8 @@ An interpreter to "Português Estruturado" written in Haskell
 Why?
 ====
 
-Português estruturado is an commun pseudo language used in universets at Brasil to introduse Computter Engenner.
-To herp studants undentunds better what happen with yours algorthimons this interpreter was write.
+Português estruturado is an common pseudocode used in universities at Brasil to introduce computer engineering.
+To help studients understands better what happen with yours algorthimons was written this interpreter. 
 
 Portugues estruturado syntax
 ============================
