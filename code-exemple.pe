@@ -1,0 +1,15 @@
+algoritimo Teste
+  var a logico;
+  var b int;
+  var c int;
+inicio
+  //b = 10 + -15.1 * -b;
+  //a = verdadeiro ou verdadeiro e a;
+  a = verdadeiro;
+  //escreva(a);
+  b = 11;
+  c = 2;
+  escreva(falso ou falso);
+  escreva(a);
+  escreva(-b%c);
+fimalgoritimo
