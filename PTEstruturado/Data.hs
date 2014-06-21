@@ -25,7 +25,7 @@ data ExpLogica = VarLogica String
                | ConsLogica Bool
                | Negacao ExpLogica
                | LogicoBin OpLogico ExpLogica ExpLogica 
-               | RelacianalBin OpRelacional ExpArit ExpArit 
+               | RelacianalBin OpRelacional ExpArit ExpArit
                deriving (Show)
               
 data OpLogico = E | Ou deriving (Show) 
@@ -55,6 +55,7 @@ data Instr = Seq [Instr]
            | Se ExpLogica Instr Instr
            | Enquanto ExpLogica Instr
            | Escreva Expr
+           | Ler String
            deriving (Show)
            
 data Algoritimo = Algoritimo String [Variavel] Instr

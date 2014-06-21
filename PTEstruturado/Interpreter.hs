@@ -5,12 +5,13 @@ module PTEstruturado.Interpreter
 
 import PTEstruturado.Data
 import PTEstruturado.Parse
-import Control.Monad.Trans.State.Lazy
+import Control.Monad.Trans.State
 import Control.Monad.IO.Class
 import Control.Monad
 
 import Data.List (find)
 import Data.Maybe
+import Text.Read (readMaybe)
 
 data AssignedVar = AssignedVar Variavel Value
 
@@ -42,23 +43,23 @@ assign::String -> Value -> Interpreter ()
 assign name val = do
   vars <- get 
   case val of 
-       Int      _ -> put $ update [] Inteiro vars
-       Frac     _ -> put $ update [] Fracionario vars
-       Logi     _ -> put $ update [] Logico vars
+       Int      _ -> put $ update [] [Inteiro, Fracionario] vars
+       Frac     _ -> put $ update [] [Fracionario]          vars
+       Logi     _ -> put $ update [] [Logico]               vars
        Unassigned -> error $ "can't assign (unassigned) to "++show name
 
   where
     update _ _ [] = error $ "can't assign to undefined variable "++show name
-    update olds t ((AssignedVar var value):xs) = 
+    update olds ts ((AssignedVar var value):xs) = 
       case var of
            (Variavel nome tipo)
-             | nome == name && tipo /= t ->
-               error $ "can't assign '" ++ show val ++ " (" ++ show t ++ ")'"
+             | nome == name && not (tipo `elem` ts) ->
+               error $ "can't assign '" ++ show val ++ " (" ++ show (head ts) ++ ")'"
                      ++" to variable '"++ name ++ " (" ++ show tipo ++ ")'"
-             | nome == name && tipo == t ->
+             | nome == name && tipo `elem` ts ->
                (AssignedVar var val):olds ++ xs
              | otherwise ->
-               update ((AssignedVar var value):olds) t xs
+               update ((AssignedVar var value):olds) ts xs
 
 access::String -> Interpreter Value 
 access name = do
@@ -75,7 +76,7 @@ access name = do
 makeProgramState :: [Variavel] -> ProgramState
 makeProgramState vars =
   map (\x -> AssignedVar x Unassigned) vars
-  
+
 interpreterStmt :: Instr -> Interpreter ()
 interpreterStmt (Seq [])     = return ()
 interpreterStmt (Seq (x:xs)) = 
@@ -86,6 +87,25 @@ interpreterStmt (Atrib name expr) =
 interpreterStmt (Escreva expr) = do
   val <- interpreterExpr expr
   liftIO $ print $ val
+
+  
+interpreterStmt (Ler var) = do
+--   liftIO $ putStr ":> "
+  value <- liftIO getLine
+  assign var (case (readMaybe value)::Maybe Integer of
+                  Just x  -> Int x 
+                  Nothing ->
+                    case (readMaybe value)::Maybe Double of
+                          Just x  -> Frac x
+                          Nothing ->
+                            case value of
+                                 v 
+                                   | v == "sim" -> Logi True
+                                   | v == "não" -> Logi False
+                                   | otherwise  ->
+                                       error $ "imposible parse " ++ show value
+             )
+
   
 interpreterExpr :: Expr -> Interpreter Value  
 interpreterExpr (Arit expr) = interpreterArit expr
@@ -162,7 +182,7 @@ interpreterArit (AritBin Rest lExpr rExpr) = do
        (Frac l, Int  r) -> error $ "imposible exec '%' between 'real' and 'int'"
        (Frac l, Frac r) -> error $ "imposible exec '%' between 'real' and 'real'"
 
-       
+
 run (Algoritimo _ vars instr) =
   runStateT (interpreterStmt instr) (makeProgramState vars)
 

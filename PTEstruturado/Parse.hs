@@ -109,29 +109,39 @@ declaration = try $ do
       
 
 statement :: Parser Instr
-statement =  assignStmt
+statement =  readStmt
+         <|> assignStmt
          <|> printStmt
-         
 
-         
+readStmt :: Parser Instr
+readStmt = try $ do
+  var <- (variable Inteiro <|> variable Fracionario <|> variable Logico)
+  let name = nome var
+  reservedOp "="
+  reserved "leia" >> parens whiteSpace
+  return (Ler name)
+
 printStmt :: Parser Instr
 printStmt = reserved "escreva" >> (liftM Escreva (parens $ expr))
   
          
 assignStmt :: Parser Instr
 assignStmt = do
-  var <- (variable Inteiro <|> variable Fracionario <|> variable Logico)
-  let name = nome var
-  reservedOp "="
-  value <- case tipo var of
-                Logico      -> liftM Logica bExpr
-                Fracionario -> liftM Arit   aExpr
-                Inteiro     -> liftM Arit   aExpr
-  return (Atrib name value)
+    var <- (variable Inteiro <|> variable Fracionario <|> variable Logico)
+    let name = nome var
+    reservedOp "="
+    value <- case tipo var of
+                  Logico      -> liftM Logica bExpr
+                  Fracionario -> liftM Arit   aExpr
+                  Inteiro     -> liftM Arit   aExpr
+    return (Atrib name value)
 
 expr :: Parser Expr  
-expr = ((liftM Logica bExpr) <|> (liftM Arit aExpr))
-  
+expr =  (liftM Logica bExpr)
+    <|> (liftM Arit aExpr)
+
+
+
 bExpr :: Parser ExpLogica
 bExpr = buildExpressionParser bOperators bTerm
 
@@ -139,6 +149,7 @@ bOperators = [ [Prefix (reservedOp "não" >> return Negacao)]
              , [Infix  (reservedOp "e"   >> return (LogicoBin E)) AssocLeft]
              , [Infix  (reservedOp "ou"  >> return (LogicoBin Ou)) AssocLeft]
              ]
+             
 bTerm =  parens bExpr
      <|> (reserved "verdadeiro"  >> return (ConsLogica True ))
      <|> (reserved "falso" >> return (ConsLogica False))
@@ -161,8 +172,7 @@ aTerm =  parens aExpr
      <|> liftM (VarArit . nome) (variable Inteiro <|> variable Fracionario)
      <|> liftM ConsArit naturalOrFloat
      <?> "arithmetic expression"
-     
-  
+
 parseFile :: String -> IO Algoritimo
 parseFile file = do
   program  <- readFile file

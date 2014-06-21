@@ -1,15 +1,22 @@
 algoritimo Teste
-  var a logico;
-  var b int;
+/* mult
+   line
+   coment */
+   
+  var a logico; // line comment 
+  var b real;
   var c int;
 inicio
-  //b = 10 + -15.1 * -b;
-  //a = verdadeiro ou verdadeiro e a;
+  b = 10 + -15.1 * -(2/3); 
   a = verdadeiro;
+  a = a ou falso;
   //escreva(a);
-  b = 11;
-  c = 2;
+  c = 3;
   escreva(falso ou falso);
   escreva(a);
-  escreva(-b%c);
+  escreva(b+b);
+  escreva(c%2);
+  b = leia();
+  c = leia();
+  escreva(b / c);
 fimalgoritimo
