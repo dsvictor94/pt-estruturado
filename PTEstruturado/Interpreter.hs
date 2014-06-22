@@ -85,6 +85,14 @@ interpreterStmt (Seq (x:xs)) =
    
 interpreterStmt (Atrib name expr) = 
   interpreterExpr expr >>= assign name 
+  
+interpreterStmt (Se cond stmt1 stmt2) = do
+  Logi c <- interpreterLogica cond
+  if c 
+     then interpreterStmt stmt1
+     else interpreterStmt stmt2
+  
+  
 interpreterStmt (Escreva expr) = do
   val <- interpreterExpr expr
   liftIO $ print $ val
@@ -108,7 +116,13 @@ interpreterStmt (Ler var) = do
                                        error $ "imposible parse " ++ show value
              )
 
-  
+interpreterStmt loop@(Enquanto cond stmt) = do
+  Logi c  <- interpreterLogica cond
+  if c
+     then (interpreterStmt stmt >> interpreterStmt loop)
+     else return ()
+
+
 interpreterExpr :: Expr -> Interpreter Value  
 interpreterExpr (Arit expr) = interpreterArit expr
 interpreterExpr (Logica expr) = interpreterLogica expr
@@ -127,7 +141,27 @@ interpreterLogica (LogicoBin Ou rExpr lExpr) =do
     (Logi r) <- interpreterLogica rExpr
     (Logi l) <- interpreterLogica lExpr
     return $ Logi (r || l)
---  | RelacianalBin OpRelacional ExpArit ExpArit
+    
+interpreterLogica (RelacianalBin op rExpr lExpr) = do
+    rExpr <- interpreterArit rExpr
+    lExpr <- interpreterArit lExpr
+    r <- case rExpr of
+              Frac x -> return x
+              Int  x -> return $ fromIntegral x
+              
+    l <- case lExpr of
+              Frac x -> return x
+              Int  x -> return $ fromIntegral x
+    
+    return $ Logi (case op of
+                        Maior      -> r >  l
+                        MaiorIgual -> r >= l
+                        Menor      -> r <  l
+                        MenorIgual -> r <= l
+                        Igual      -> r == l
+                        Diferente  -> r /= l
+                  )
+          
 
 interpreterArit:: ExpArit -> Interpreter Value
 interpreterArit (VarArit name) = access name

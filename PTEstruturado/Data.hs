@@ -35,6 +35,7 @@ data OpRelacional = Maior
                   | Menor
                   | MenorIgual
                   | Igual
+                  | Diferente
                   deriving (Show)
 
 data ExpArit = VarArit String

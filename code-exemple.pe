@@ -18,5 +18,10 @@ inicio
   escreva(c%2);
   b = leia();
   c = leia();
-  escreva(b / c);
+  se verdadeiro então
+    escreva(b / c);
+    se falso então
+       escreva(10);
+    fimse;
+  fimse;
 fimalgoritimo

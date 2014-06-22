@@ -9,7 +9,7 @@ import Data.List (find)
 
 import System.IO
 import Control.Monad
-import Text.Parsec.Prim (Parsec, putState, modifyState, unexpected)
+import Text.Parsec.Prim hiding (runParser, try)
 import Text.ParserCombinators.Parsec  hiding (Parser)
 import Text.ParserCombinators.Parsec.Expr
 import Text.ParserCombinators.Parsec.Language
@@ -52,7 +52,7 @@ languageDef =
                                       , "escreva"
                                       ]
             , Token.reservedOpNames = ["+", "-", "*", "/", "%", "="
-                                      , "<", "<=", "==" ,">=", ">"
+                                      , "<", "<=", "==", "!=", ">=", ">"
                                       , "e", "ou", "não"
                                       ]
             }
@@ -74,9 +74,9 @@ ptestruturadoParser = do
   whiteSpace
   name <- lookAhead (reserved "algoritimo">>identifier)
   vars <- between (reserved "algoritimo">>identifier) (reserved "inicio") varblock
-  stmt <- statement `endBy` semi
+  stmt <- statement
   reserved "fimalgoritimo"
-  return (Algoritimo name vars (Seq stmt))
+  return (Algoritimo name vars stmt)
 
 variable::Tipo -> Parser Variavel
 variable t = try $ do
@@ -109,9 +109,13 @@ declaration = try $ do
       
 
 statement :: Parser Instr
-statement =  readStmt
-         <|> assignStmt
-         <|> printStmt
+statement = liftM Seq (stmt `endBy` semi) 
+  where
+     stmt = readStmt
+        <|> assignStmt
+        <|> printStmt
+        <|> ifStmt
+        <|> whileStmt
 
 readStmt :: Parser Instr
 readStmt = try $ do
@@ -121,10 +125,6 @@ readStmt = try $ do
   reserved "leia" >> parens whiteSpace
   return (Ler name)
 
-printStmt :: Parser Instr
-printStmt = reserved "escreva" >> (liftM Escreva (parens $ expr))
-  
-         
 assignStmt :: Parser Instr
 assignStmt = do
     var <- (variable Inteiro <|> variable Fracionario <|> variable Logico)
@@ -136,6 +136,24 @@ assignStmt = do
                   Inteiro     -> liftM Arit   aExpr
     return (Atrib name value)
 
+printStmt :: Parser Instr
+printStmt = reserved "escreva" >> (liftM Escreva (parens $ expr))
+  
+ifStmt :: Parser Instr
+ifStmt = between (reserved "se") (reserved "fimse") $ do
+  cond <- bExpr
+  reserved "então"
+  stmt1 <- statement
+  stmt2 <- (reserved "senão" >> statement) <|> (return $ Seq [])
+  return $ Se cond stmt1 stmt2
+
+whileStmt :: Parser Instr
+whileStmt = between (reserved "enquanto") (reserved "fimenquanto") $ do
+  cond <- bExpr
+  reserved "faça"
+  stmt <- statement
+  return $ Enquanto cond stmt
+  
 expr :: Parser Expr  
 expr =  (liftM Logica bExpr)
     <|> (liftM Arit aExpr)
@@ -143,19 +161,36 @@ expr =  (liftM Logica bExpr)
 
 
 bExpr :: Parser ExpLogica
-bExpr = buildExpressionParser bOperators bTerm
+bExpr =  (buildExpressionParser bOperators) bTerm
 
-bOperators = [ [Prefix (reservedOp "não" >> return Negacao)]
-             , [Infix  (reservedOp "e"   >> return (LogicoBin E)) AssocLeft]
-             , [Infix  (reservedOp "ou"  >> return (LogicoBin Ou)) AssocLeft]
+bOperators = [ [Prefix (reserved "não" >> return Negacao)]
+             , [Infix  (reserved "e"   >> return (LogicoBin E)) AssocLeft]
+             , [Infix  (reserved "ou"  >> return (LogicoBin Ou)) AssocLeft]
              ]
              
 bTerm =  parens bExpr
      <|> (reserved "verdadeiro"  >> return (ConsLogica True ))
      <|> (reserved "falso" >> return (ConsLogica False))
      <|> (liftM (VarLogica . nome) (variable Logico))
+     <|> rExpr
      <?> "boolean expression"
---     <|> rExpr
+
+rExpr :: Parser ExpLogica     
+rExpr = try $ do
+  l <- aExpr
+  op <- relation
+  r <- aExpr
+  return $ RelacianalBin op l r
+  where
+    relation =  (reservedOp ">"  >> return Maior)
+            <|> (reservedOp ">=" >> return MaiorIgual)
+            <|> (reservedOp "<"  >> return Menor)
+            <|> (reservedOp "<=" >> return MenorIgual)
+            <|> (reservedOp "==" >> return Igual)
+            <|> (reservedOp "!=" >> return Diferente)
+             
+    
+
   
 aExpr :: Parser ExpArit
 aExpr = buildExpressionParser aOperators aTerm

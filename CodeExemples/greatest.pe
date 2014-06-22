@@ -1,0 +1,12 @@
+algoritimo Teste
+  var a real;
+  var b int;
+inicio
+  a = leia();
+  b = leia();
+  se (a > b) então
+    escreva( a );
+  senão
+    escreva(b);
+  fimse;
+fimalgoritimo

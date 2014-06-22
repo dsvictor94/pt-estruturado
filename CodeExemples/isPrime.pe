@@ -1,0 +1,25 @@
+algoritimo Teste
+  var a int;
+  var c int;
+  var primo logico;
+inicio
+  c = 2;
+  primo = verdadeiro;
+
+  a = leia();
+  se a < 0 então
+    a = -a;
+  fimse;
+  
+  se a == 0 ou a == 1 então
+    primo = falso;
+  fimse;
+  
+  enquanto c < a e primo faça
+    se a % c == 0 então
+      primo = falso;
+    fimse;
+    c = c + 1;
+  fimenquanto;
+  escreva(primo);
+fimalgoritimo
