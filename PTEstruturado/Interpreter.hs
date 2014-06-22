@@ -8,6 +8,7 @@ import PTEstruturado.Parse
 import Control.Monad.Trans.State
 import Control.Monad.IO.Class
 import Control.Monad
+import System.IO
 
 import Data.List (find)
 import Data.Maybe
@@ -90,7 +91,8 @@ interpreterStmt (Escreva expr) = do
 
   
 interpreterStmt (Ler var) = do
---   liftIO $ putStr ":> "
+  liftIO $ putStr ":> "
+  liftIO $ hFlush stdout
   value <- liftIO getLine
   assign var (case (readMaybe value)::Maybe Integer of
                   Just x  -> Int x 
