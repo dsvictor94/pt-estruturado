@@ -19,6 +19,7 @@ instance Show Tipo where
 
 data Expr = Arit ExpArit
           | Logica ExpLogica
+          | Nada
           deriving (Show)
 
 data ExpLogica = VarLogica String
@@ -55,8 +56,8 @@ data Instr = Seq [Instr]
            | Atrib String Expr
            | Se ExpLogica Instr Instr
            | Enquanto ExpLogica Instr
-           | Escreva Expr
-           | Ler String
+           | Escreva String Expr
+           | Ler String String
            deriving (Show)
            
 data Algoritimo = Algoritimo String [Variavel] Instr

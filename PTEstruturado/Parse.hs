@@ -122,8 +122,21 @@ readStmt = try $ do
   var <- (variable Inteiro <|> variable Fracionario <|> variable Logico)
   let name = nome var
   reservedOp "="
-  reserved "leia" >> parens whiteSpace
-  return (Ler name)
+  reserved "leia"
+  text <- parens (quoted <|> return ":>")
+  return (Ler text name)
+  
+quoted = do
+    whiteSpace
+    char '"'
+    content <- many quotedChar
+    char '"' <?> "quote at end of cell"
+    whiteSpace
+    return content
+  where 
+    quotedChar =
+      noneOf "\""
+      <|> try (string "\"\"" >> return '"')  
 
 assignStmt :: Parser Instr
 assignStmt = do
@@ -137,7 +150,19 @@ assignStmt = do
     return (Atrib name value)
 
 printStmt :: Parser Instr
-printStmt = reserved "escreva" >> (liftM Escreva (parens $ expr))
+printStmt =  reserved "escreva" >> parens (twoArgs <|> text <|> value)
+    where
+      twoArgs = do
+        text <- quoted
+        reservedOp ","
+        v <- expr
+        return $ Escreva text v
+      text = do
+        text <- quoted
+        return $ Escreva text Nada
+      value = do
+        v <- expr
+        return $ Escreva "" v
   
 ifStmt :: Parser Instr
 ifStmt = between (reserved "se") (reserved "fimse") $ do

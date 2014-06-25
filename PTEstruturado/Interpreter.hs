@@ -93,13 +93,13 @@ interpreterStmt (Se cond stmt1 stmt2) = do
      else interpreterStmt stmt2
   
   
-interpreterStmt (Escreva expr) = do
+interpreterStmt (Escreva text expr) = do
   val <- interpreterExpr expr
-  liftIO $ print $ val
+  liftIO $ putStrLn $ text ++ show val
 
   
-interpreterStmt (Ler var) = do
-  liftIO $ putStr ":> "
+interpreterStmt (Ler text var) = do
+  liftIO $ putStr text
   liftIO $ hFlush stdout
   value <- liftIO getLine
   assign var (case (readMaybe value)::Maybe Integer of
@@ -204,10 +204,10 @@ interpreterArit (AritBin Subt lExpr rExpr) = do
   l <- interpreterArit lExpr
   r <- interpreterArit rExpr
   case (l,r) of
-       (Int  l, Int  r) -> return $ Int $ (+) l r
-       (Int  l, Frac r) -> return $ Frac $ (+) (fromIntegral l) r
-       (Frac l, Int  r) -> return $ Frac $ (+) l (fromIntegral r)
-       (Frac l, Frac r) -> return $ Frac $ (+) l r
+       (Int  l, Int  r) -> return $ Int $ (-) l r
+       (Int  l, Frac r) -> return $ Frac $ (-) (fromIntegral l) r
+       (Frac l, Int  r) -> return $ Frac $ (-) l (fromIntegral r)
+       (Frac l, Frac r) -> return $ Frac $ (-) l r
 
 interpreterArit (AritBin Rest lExpr rExpr) = do
   l <- interpreterArit lExpr

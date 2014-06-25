@@ -16,10 +16,10 @@ inicio
   escreva(a);
   escreva(b+b);
   escreva(c%2);
-  b = leia();
-  c = leia();
+  b = leia("informe um valor real: " );
+  c = leia("informe um valor inteiro: ");
   se verdadeiro então
-    escreva(b / c);
+    escreva("o primeiro pelo segundo eh: ", b / c);
     se falso então
        escreva(10);
     fimse;
